@@ -11,7 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once '../config/db.php'; // your PDO connection file
+require_once '../vendor/autoload.php'; // Composer autoloader
+require_once '../config/db.php';
+require_once '../config/jwt_config.php';
+
+use Firebase\JWT\JWT;
 
 $input = json_decode(file_get_contents("php://input"), true);
 
@@ -25,27 +29,35 @@ $email = trim($input['email']);
 $password = trim($input['password']);
 
 try {
-    // Check if email already exists
     $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->execute([$email]);
 
     if ($stmt->fetch()) {
-        http_response_code(403);  // Set HTTP status 403 Forbidden
+        http_response_code(403); 
         echo json_encode(["success" => false, "message" => "Email already registered"]);
         exit;
     }
 
-    // Hash the password
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-    // Insert new user
     $stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
     $stmt->execute([$name, $email, $hashedPassword]);
 
     $userId = $pdo->lastInsertId();
 
-    // Generate JWT token (optional)
-    $token = base64_encode(random_bytes(30)); // or use real JWT
+    // Create JWT
+    $issuedAt = time();
+    $expirationTime = $issuedAt + (60 * 60 * 24); // Expires in 24 hours
+    $payload = [
+        'iat' => $issuedAt,
+        'exp' => $expirationTime,
+        'data' => [
+            'id' => $userId,
+            'name' => $name,
+            'email' => $email
+        ]
+    ];
+    $token = JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
 
     echo json_encode([
         "success" => true,
@@ -54,7 +66,7 @@ try {
             "name" => $name,
             "email" => $email
         ],
-        "token" => $token
+        "token" => $token // Your client-side JS should save this in localStorage
     ]);
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => $e->getMessage()]);

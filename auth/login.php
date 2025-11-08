@@ -11,7 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+require_once '../vendor/autoload.php'; // Composer autoloader
 require_once '../config/db.php'; // Your PDO connection file
+require_once '../config/jwt_config.php';
+
+use Firebase\JWT\JWT;
 
 // ✅ Read JSON input
 $input = json_decode(file_get_contents("php://input"), true);
@@ -35,12 +39,20 @@ try {
         exit;
     }
 
-    // ✅ Generate a token (you can replace this with JWT)
-    $token = base64_encode(random_bytes(30));
+    // ✅ Create JWT
+    $issuedAt = time();
+    $expirationTime = $issuedAt + (60 * 60 * 24); // Expires in 24 hours
+    $payload = [
+        'iat' => $issuedAt,
+        'exp' => $expirationTime,
+        'data' => [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email']
+        ]
+    ];
 
-    // Optional: store token in session or database
-    // $stmt = $pdo->prepare("UPDATE users SET token = ? WHERE id = ?");
-    // $stmt->execute([$token, $user['id']]);
+    $token = JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
 
     // ✅ Return success
     echo json_encode([
