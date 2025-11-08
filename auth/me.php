@@ -32,15 +32,10 @@ if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
 $token = $matches[1];
 
 try {
-    // Decode and verify the JWT
     $decoded = JWT::decode($token, new Key(JWT_SECRET_KEY, 'HS256'));
     $userId = $decoded->data->id;
 
-    // Fetch user details and progress
-    // Note: Your frontend code uses 'first_name' and 'last_name', but your register.php uses 'name'.
-    // I'll select 'name' and alias it for consistency with your frontend expectation.
-    // You might want to align your database schema later.
-    $stmt = $pdo->prepare("SELECT id, name as first_name, '' as last_name, email, progress FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, name as first_name, '' as last_name, email, progress, created_at FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -50,7 +45,6 @@ try {
         exit;
     }
 
-    // Decode progress JSON or set empty array
     $progress = [];
     if (!empty($user['progress'])) {
         $progress = json_decode($user['progress'], true);
@@ -64,6 +58,7 @@ try {
         'last_name' => $user['last_name'],
         'email' => $user['email'],
         'progress' => $progress,
+        "created_at" => $user['created_at']
     ]);
 
 } catch (Exception $e) {

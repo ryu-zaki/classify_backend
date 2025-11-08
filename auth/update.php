@@ -50,8 +50,7 @@ try {
     echo json_encode(['success' => true, 'message' => 'Progress updated successfully']);
 
 } catch (Exception $e) {
-    // This catches JWT errors (invalid signature, expired, etc.) and PDO errors
-    http_response_code(401); // Use 401 for auth-related failures
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
 }
 ?>
