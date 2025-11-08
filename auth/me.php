@@ -1,25 +1,21 @@
 <?php
-// me.php
-
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 
-// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-require_once '../vendor/autoload.php'; // Composer autoloader
-require_once '../config/db.php'; // your PDO connection file
+require_once '../vendor/autoload.php'; 
+require_once '../config/db.php'; 
 require_once '../config/jwt_config.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-// Get Authorization header
 $headers = getallheaders();
 $authHeader = $headers['Authorization'] ?? '';
 
@@ -51,7 +47,6 @@ try {
         if (!is_array($progress)) $progress = [];
     }
 
-    // Return user data
     echo json_encode([
         'id' => $user['id'],
         'first_name' => $user['first_name'],

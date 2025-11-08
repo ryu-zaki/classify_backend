@@ -1,3 +1,3 @@
 <?php
-define('JWT_SECRET_KEY', 'your-super-secret-and-long-key-goes-here');
+define('JWT_SECRET_KEY', 'PT4/u1vL9D8dKUNs3vT5QoAblTPOKRVAKu2yXU1Xg/c4nQJgYfODpI3w2o+LPWzU');
 ?>
